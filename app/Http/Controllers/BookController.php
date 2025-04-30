@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Book;
+use Illuminate\Support\Facades\Auth;
 
 class BookController extends Controller
 {
@@ -24,7 +25,6 @@ class BookController extends Controller
 
         return response()->json($query->get());
     }
-
     public function store(Request $request)
     {
         $validatedData = $request->validate([

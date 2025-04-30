@@ -1,6 +1,6 @@
 <script setup>
 import { reactive, ref } from "vue";
-import axios from "../axios";
+import axios from "axios";
 import { useRouter } from "vue-router";
 
 const form = reactive({
@@ -19,7 +19,7 @@ const submitBook = async () => {
     }
 
     try {
-        const response = await axios.post("/book/create", form);
+        const response = await axios.post("/book", form);
         message.value = `Книга добавлена: ${response.data.title}`;
         error.value = "";
 

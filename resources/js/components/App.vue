@@ -14,6 +14,10 @@ provide("AuthActions", {
     closeAuth,
     openAuth,
 });
+
+defineExpose({
+    authOpen,
+});
 </script>
 
 <template>

@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('title');
             $table->string('author');
             $table->timestamps();
+            $table->boolean('is_reserved')->default(false);
+            $table->foreignId('reserved_by')->nullable()->constrained('users')->onDelete('set null');
         });
     }
 

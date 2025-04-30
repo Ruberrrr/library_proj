@@ -5,30 +5,46 @@ use Illuminate\Http\Request;
 use App\Models\Book;
 use App\Models\Reservation;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class ReservationController extends Controller
 {
-    public function store(Request $request, $id)
+    public function reserveBook(Request $request, $bookId)
     {
-
-        $book = Book::findOrFail($id);
-
-        if ($book->is_reserved) {
-            return back()->with('error', 'Книга уже забронирована');
-        }
-
         $user = Auth::user();
 
-        $Reservations = new Reservation();
-        $Reservations->user_id = $user->id;
-        $Reservations->book_id = $book->id;
-        $Reservations->expires_at = now()->addDays(7);
-        $Reservations->save();
+    if (!$user) {
+        return response()->json(['message' => 'Неавторизованный пользователь'], 403);
+    }
 
-        $book->is_reserved = true;
-        $book->save();
+    $book = Book::findOrFail($bookId);
 
-        return back()->with('success', 'Книга успешно забронирована');
+    if ($book->is_reserved) {
+        return response()->json(['message' => 'Книга уже зарезервирована'], 400);
+    }
+
+    $existingReservation = Reservation::where('book_id', $book->id)
+        ->where('user_id', $user->id)
+        ->first();
+
+    if ($existingReservation) {
+        return response()->json(['message' => 'Вы уже зарезервировали эту книгу'], 400);
+    }
+
+    $reservation = new Reservation();
+    $reservation->user_id = $user->id;
+    $reservation->book_id = $book->id;
+
+    $reservation->expires_at = Carbon::now()->addWeek();
+    
+    $reservation->save();
+
+
+    $book->is_reserved = true;
+    $book->reserved_by = $user->id;
+    $book->save();
+
+    return response()->json(['message' => 'Книга успешно забронирована'], 200);
     }
 
     public function destroy($id)

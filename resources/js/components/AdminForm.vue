@@ -15,9 +15,7 @@ const form = ref({
     email: "",
     password: "",
 });
-
 const selectedRole = ref(null);
-
 const roles = [
     { id: 1, name: "admin" },
     { id: 2, name: "librarian" },
@@ -33,14 +31,9 @@ watch(
     },
     { immediate: true }
 );
-
 const handleSubmit = async () => {
     try {
         const roleId = selectedRole.value;
-        if (!roleId) {
-            console.error("Роль не выбрана");
-            return;
-        }
         if (props.isUpdateMode) {
             await axios.put(`/users/${props.editingUserId}/password`, {
                 user_id: props.editingUserId,

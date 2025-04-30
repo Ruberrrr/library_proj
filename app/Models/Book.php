@@ -14,6 +14,10 @@ class Book extends Model
     protected $table = 'books';
     protected $fillable = ['title', 'author'];
 
+    public function reservations()
+    {
+    return $this->hasMany(Reservation::class);
+    }   
     public function user()
     {
         return $this->belongsTo(User::class);

@@ -3,45 +3,98 @@ import { ref, onMounted, watch } from "vue";
 import axios from "../axios";
 import { inject } from "vue";
 import { useRouter } from "vue-router";
+
 const books = ref([]);
 const sortBy = ref("");
 const search = ref("");
+const userId = localStorage.getItem("userId");
 const router = useRouter();
-const isAuthenticated = ref(true);
+const userRole = ref("guest");
+const isAuthenticated = ref(false);
+const checkAuth = () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+        isAuthenticated.value = true;
+        userRole.value = localStorage.getItem("role") || "user";
+    } else {
+        isAuthenticated.value = false;
+        userRole.value = "guest";
+    }
+};
+const getIconPath = (isReserved) => {
+    return new URL(
+        `../assets/svg/${isReserved ? "favorite-fill" : "favorite"}.svg`,
+        import.meta.url
+    ).href;
+};
 
 const loadBooks = async () => {
     try {
         const response = await axios.get("/book", {
+            withCredentials: true,
             params: {
                 sortBy: sortBy.value,
                 search: search.value,
             },
         });
-        books.value = response.data;
+        if (userRole.value === "guest") {
+            books.value = response.data.filter((book) => !book.is_reserved);
+        } else if (userRole.value === "user") {
+            books.value = response.data.filter(
+                (book) =>
+                    !book.is_reserved ||
+                    book.reserved_by === localStorage.getItem("userId")
+            );
+        } else if (userRole.value === "admin") {
+            books.value = response.data;
+        }
     } catch (error) {
         console.error("Ошибка при загрузке книг:", error);
         alert("Не удалось загрузить книги");
     }
 };
-onMounted(() => {
-    const token = localStorage.getItem("token");
-    isAuthenticated.value = !!token;
 
-    loadBooks();
-});
 const logout = async () => {
     try {
         await axios.post("/logout", {});
-
         localStorage.removeItem("token");
         localStorage.removeItem("role");
+        localStorage.removeItem("userId");
 
-        axios.defaults.headers.common["Authorization"] = null;
         isAuthenticated.value = false;
+        userRole.value = "guest";
+        openAuth();
+        router.push("/");
     } catch (error) {
         console.error("Ошибка выхода:", error);
     }
 };
+
+const reserveBook = async (book) => {
+    if (book.is_reserved) {
+        alert("Эта книга уже зарезервирована!");
+        return;
+    }
+
+    try {
+        await axios.post(`/book/${book.id}/reserve`, {
+            user_id: userId,
+            withCredentials: true,
+        });
+        book.is_reserved = true;
+        alert("Книга успешно забронирована!");
+    } catch (error) {
+        alert(
+            error.response?.data?.message || "Ошибка при резервировании книги."
+        );
+    }
+};
+
+onMounted(() => {
+    checkAuth();
+    loadBooks();
+});
+
 watch([sortBy, search], () => {
     loadBooks();
 });
@@ -49,6 +102,7 @@ watch([sortBy, search], () => {
 const onChangeSelect = (event) => {
     sortBy.value = event.target.value;
 };
+
 const { openAuth } = inject("AuthActions");
 </script>
 
@@ -107,14 +161,13 @@ const { openAuth } = inject("AuthActions");
                 class="relative bg-white p-4 rounded-xl shadow-lg"
             >
                 <img
+                    @click="reserveBook(book)"
                     class="w-14 h-14 absolute top-3 left-3 cursor-pointer hover:scale-105 transition"
-                    src="../assets/svg/favorite.svg"
+                    :src="getIconPath(book.is_reserved)"
                     alt="favorite"
                 />
                 <img src="../assets/images/book.jpg" alt="Book" />
-                <h2 class="text-xl font-semibold my-2">
-                    {{ book.title }}
-                </h2>
+                <h2 class="text-xl font-semibold my-2">{{ book.title }}</h2>
                 <p class="text-gray-500 mb-4">{{ book.author }}</p>
             </div>
         </div>

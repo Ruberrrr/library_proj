@@ -3,6 +3,7 @@ import BookForm from "../components/BookForm.vue";
 import BookPage from "../components/BookPage.vue";
 import AdminPanel from "../components/Admin.vue";
 
+import BookDelete from "../components/BookDelete.vue";
 const routes = [
     {
         path: "/",
@@ -13,6 +14,12 @@ const routes = [
         path: "/books/create",
         name: "BookCreate",
         component: BookForm,
+        meta: { requiresAuth: true, requiresRole: "librarian" },
+    },
+    {
+        path: "/books/delete",
+        name: "BookDelete",
+        component: BookDelete,
         meta: { requiresAuth: true, requiresRole: "librarian" },
     },
     {
