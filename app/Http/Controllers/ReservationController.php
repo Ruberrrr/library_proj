@@ -38,8 +38,7 @@ class ReservationController extends Controller
     $reservation->expires_at = Carbon::now()->addWeek();
     
     $reservation->save();
-
-
+    
     $book->is_reserved = true;
     $book->reserved_by = $user->id;
     $book->save();

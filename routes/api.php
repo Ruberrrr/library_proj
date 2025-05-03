@@ -8,9 +8,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Auth\PasswordController;
 
-
 Route::get('/book', [BookController::class, 'index'])->name('book.all');
-Route::get('login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 Route::middleware('auth:sanctum')->post('/book/{bookId}/reserve', [ReservationController::class, 'reserveBook']);
@@ -22,6 +20,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::get('users', [UserController::class, 'index'])->name('user.all');
     Route::delete('users/{id}', [UserController::class, 'destroy'])->name('user.destroy');
     Route::get('login',[UserController::class, 'index']);
+    Route::post('books/create', [BookController::class, 'store'])->name('book.add');
 });
 Route::middleware(['auth:sanctum','role:librarian'])->group(function () {
     Route::post('books/create', [BookController::class, 'store'])->name('book.add');

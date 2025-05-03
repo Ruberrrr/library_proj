@@ -15,6 +15,7 @@ Schedule::call(function () {
             $book->reserved_by = null;
             $book->save();
         }
+
         $reservation->delete();
     }
 

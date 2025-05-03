@@ -12,6 +12,8 @@ class BookController extends Controller
     {
         $query = Book::query();
 
+        $query->orderByDesc('is_reserved');
+        
         if ($request->filled('search')) {
             $query->where('title', 'like', '%' . $request->search . '%');
         }

@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from "vue-router";
 import BookForm from "../components/BookForm.vue";
 import BookPage from "../components/BookPage.vue";
 import AdminPanel from "../components/Admin.vue";
-
 import BookDelete from "../components/BookDelete.vue";
 const routes = [
     {
@@ -14,7 +13,7 @@ const routes = [
         path: "/books/create",
         name: "BookCreate",
         component: BookForm,
-        meta: { requiresAuth: true, requiresRole: "librarian" },
+        meta: { requiresAuth: true, requiresRole: ("librarian", "admin") },
     },
     {
         path: "/books/delete",

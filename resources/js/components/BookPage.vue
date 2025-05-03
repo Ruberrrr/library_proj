@@ -7,15 +7,17 @@ import { useRouter } from "vue-router";
 const books = ref([]);
 const sortBy = ref("");
 const search = ref("");
-const userId = localStorage.getItem("userId");
 const router = useRouter();
 const userRole = ref("guest");
 const isAuthenticated = ref(false);
+const userId = Number(localStorage.getItem("userId"));
+
 const checkAuth = () => {
+    const storedRole = localStorage.getItem("role");
     const token = localStorage.getItem("token");
     if (token) {
         isAuthenticated.value = true;
-        userRole.value = localStorage.getItem("role") || "user";
+        userRole.value = storedRole || "guest";
     } else {
         isAuthenticated.value = false;
         userRole.value = "guest";
@@ -27,7 +29,6 @@ const getIconPath = (isReserved) => {
         import.meta.url
     ).href;
 };
-
 const loadBooks = async () => {
     try {
         const response = await axios.get("/book", {
@@ -37,15 +38,11 @@ const loadBooks = async () => {
                 search: search.value,
             },
         });
-        if (userRole.value === "guest") {
-            books.value = response.data.filter((book) => !book.is_reserved);
-        } else if (userRole.value === "user") {
+        if (userRole.value === "user") {
             books.value = response.data.filter(
-                (book) =>
-                    !book.is_reserved ||
-                    book.reserved_by === localStorage.getItem("userId")
+                (book) => !book.reserved_by || book.reserved_by === userId
             );
-        } else if (userRole.value === "admin") {
+        } else if (userRole.value === "admin" || "librarian" || "guest") {
             books.value = response.data;
         }
     } catch (error) {
@@ -53,7 +50,6 @@ const loadBooks = async () => {
         alert("Не удалось загрузить книги");
     }
 };
-
 const logout = async () => {
     try {
         await axios.post("/logout", {});
@@ -69,13 +65,11 @@ const logout = async () => {
         console.error("Ошибка выхода:", error);
     }
 };
-
 const reserveBook = async (book) => {
     if (book.is_reserved) {
         alert("Эта книга уже зарезервирована!");
         return;
     }
-
     try {
         await axios.post(`/book/${book.id}/reserve`, {
             user_id: userId,
@@ -161,13 +155,23 @@ const { openAuth } = inject("AuthActions");
                 class="relative bg-white p-4 rounded-xl shadow-lg"
             >
                 <img
+                    v-if="userRole !== 'guest'"
                     @click="reserveBook(book)"
                     class="w-14 h-14 absolute top-3 left-3 cursor-pointer hover:scale-105 transition"
                     :src="getIconPath(book.is_reserved)"
                     alt="favorite"
                 />
+                <img
+                    v-else
+                    @click="openAuth"
+                    class="w-14 h-14 absolute top-3 left-3 cursor-pointer hover:scale-105 transition"
+                    src="../assets/svg/favorite.svg"
+                    alt="favorite"
+                />
                 <img src="../assets/images/book.jpg" alt="Book" />
-                <h2 class="text-xl font-semibold my-2">{{ book.title }}</h2>
+                <h2 class="text-xl font-semibold my-2">
+                    {{ book.title }}, {{ book.id }}
+                </h2>
                 <p class="text-gray-500 mb-4">{{ book.author }}</p>
             </div>
         </div>

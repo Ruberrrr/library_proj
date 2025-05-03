@@ -21,10 +21,12 @@ const login = async () => {
 
         const token = response.data.token;
         const roles = response.data.role;
+        const id = response.data.id;
 
         if (token) {
             localStorage.setItem("token", token);
             localStorage.setItem("role", roles[0]);
+            localStorage.setItem("userId", response.data.id);
         } else {
         }
 
