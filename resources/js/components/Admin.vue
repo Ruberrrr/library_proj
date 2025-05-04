@@ -14,7 +14,6 @@ const getUsers = async () => {
         users.value = response.data;
     } catch (err) {
         err.value = "Ошибка при загрузке пользователей";
-        console.error(err);
     }
 };
 const openAddUser = () => {
@@ -50,7 +49,7 @@ onMounted(() => {
         @close="closeModal"
         @refresh="getUsers"
     />
-    <div class="container mx-auto h-screen mt-10 p-4 bg-white rounded-md">
+    <div class="container mx-auto mt-10 p-4 bg-white rounded-md">
         <header class="flex justify-between items-center">
             <h1 class="text-2xl text-black font-semibold mb-6">
                 Управление пользователями

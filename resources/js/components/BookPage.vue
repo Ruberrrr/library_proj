@@ -1,70 +1,17 @@
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { onMounted, watch, inject } from "vue";
 import axios from "../axios";
-import { inject } from "vue";
-import { useRouter } from "vue-router";
+import BookPageHeader from "../components/BookPageHeader.vue";
+import BookCard from "../components/BookCard.vue";
+import SkeletonCard from "../components/SkeletonCard.vue";
+import { useSkeleton } from "../composables/Skeleton";
+import { useAuth } from "../composables/useAuth";
+import { useBooks } from "../composables/useBooks";
 
-const books = ref([]);
-const sortBy = ref("");
-const search = ref("");
-const router = useRouter();
-const userRole = ref("guest");
-const isAuthenticated = ref(false);
-const userId = Number(localStorage.getItem("userId"));
+const { userRole, userId, checkAuth, logout } = useAuth();
+const { books, loading, sortBy, search, loadBooks } = useBooks();
+const { openAuth } = inject("AuthActions");
 
-const checkAuth = () => {
-    const storedRole = localStorage.getItem("role");
-    const token = localStorage.getItem("token");
-    if (token) {
-        isAuthenticated.value = true;
-        userRole.value = storedRole || "guest";
-    } else {
-        isAuthenticated.value = false;
-        userRole.value = "guest";
-    }
-};
-const getIconPath = (isReserved) => {
-    return new URL(
-        `../assets/svg/${isReserved ? "favorite-fill" : "favorite"}.svg`,
-        import.meta.url
-    ).href;
-};
-const loadBooks = async () => {
-    try {
-        const response = await axios.get("/book", {
-            withCredentials: true,
-            params: {
-                sortBy: sortBy.value,
-                search: search.value,
-            },
-        });
-        if (userRole.value === "user") {
-            books.value = response.data.filter(
-                (book) => !book.reserved_by || book.reserved_by === userId
-            );
-        } else if (userRole.value === "admin" || "librarian" || "guest") {
-            books.value = response.data;
-        }
-    } catch (error) {
-        console.error("Ошибка при загрузке книг:", error);
-        alert("Не удалось загрузить книги");
-    }
-};
-const logout = async () => {
-    try {
-        await axios.post("/logout", {});
-        localStorage.removeItem("token");
-        localStorage.removeItem("role");
-        localStorage.removeItem("userId");
-
-        isAuthenticated.value = false;
-        userRole.value = "guest";
-        openAuth();
-        router.push("/");
-    } catch (error) {
-        console.error("Ошибка выхода:", error);
-    }
-};
 const reserveBook = async (book) => {
     if (book.is_reserved) {
         alert("Эта книга уже зарезервирована!");
@@ -73,7 +20,6 @@ const reserveBook = async (book) => {
     try {
         await axios.post(`/book/${book.id}/reserve`, {
             user_id: userId,
-            withCredentials: true,
         });
         book.is_reserved = true;
         alert("Книга успешно забронирована!");
@@ -83,97 +29,41 @@ const reserveBook = async (book) => {
         );
     }
 };
-
-onMounted(() => {
+const { skeletons, realBooks } = useSkeleton(loading, books);
+onMounted(async () => {
     checkAuth();
-    loadBooks();
+    loadBooks(userRole.value, userId.value);
 });
 
 watch([sortBy, search], () => {
-    loadBooks();
+    loadBooks(userRole.value, userId.value);
 });
-
-const onChangeSelect = (event) => {
-    sortBy.value = event.target.value;
-};
-
-const { openAuth } = inject("AuthActions");
 </script>
-
 <template>
     <div class="container mx-auto mt-8 p-4 bg-white rounded-md">
-        <div
-            class="flex w-full justify-between items-center px-2 sticky top-0 shadow-md rounded-md bg-white mb-8 z-10"
-        >
-            <h1 class="text-3xl text-black font-semibold mb-6">Библиотека</h1>
-            <div class="flex gap-4">
-                <select
-                    @change="onChangeSelect"
-                    class="py-2 px-3 border rounded-md outlane-none"
-                >
-                    <option value="author">По автору</option>
-                    <option value="alpabet">По алфавиту</option>
-                </select>
-            </div>
-            <div class="flex justify-between relative">
-                <img
-                    src="../assets/svg/search.svg"
-                    alt="search"
-                    class="absolute w-6 h-6 top-2.5 left-3"
-                />
-                <input
-                    v-model="search"
-                    type="text"
-                    placeholder="Поиск..."
-                    class="mr-5 pl-10 pr-4 border rounded-md outline-none"
-                />
-                <button
-                    v-if="isAuthenticated"
-                    @click="logout"
-                    class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                >
-                    Выход
-                </button>
-                <button
-                    v-else
-                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                    @click="openAuth"
-                >
-                    Вход
-                </button>
-            </div>
-        </div>
+        <BookPageHeader
+            :search="search"
+            :userRole="userRole"
+            @update:search="search = $event"
+            @sort-change="(val) => (sortBy = val)"
+            @logout="logout"
+            @open-auth="openAuth"
+        />
         <h2 class="text-lg text-gray-400 font-normal ml-2 mb-6">
             Список книг:
         </h2>
         <div
-            class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-8"
+            class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-8"
         >
-            <div
-                v-for="book in books"
-                :key="book.id"
-                class="relative bg-white p-4 rounded-xl shadow-lg"
-            >
-                <img
-                    v-if="userRole !== 'guest'"
-                    @click="reserveBook(book)"
-                    class="w-14 h-14 absolute top-3 left-3 cursor-pointer hover:scale-105 transition"
-                    :src="getIconPath(book.is_reserved)"
-                    alt="favorite"
-                />
-                <img
-                    v-else
-                    @click="openAuth"
-                    class="w-14 h-14 absolute top-3 left-3 cursor-pointer hover:scale-105 transition"
-                    src="../assets/svg/favorite.svg"
-                    alt="favorite"
-                />
-                <img src="../assets/images/book.jpg" alt="Book" />
-                <h2 class="text-xl font-semibold my-2">
-                    {{ book.title }}, {{ book.id }}
-                </h2>
-                <p class="text-gray-500 mb-4">{{ book.author }}</p>
-            </div>
+            <SkeletonCard v-for="s in skeletons" :key="s.id" />
+            <BookCard
+                v-for="b in realBooks"
+                :key="b.id"
+                :book="b"
+                :userRole="userRole"
+                :openAuth="openAuth"
+                :reserveBook="reserveBook"
+            />
         </div>
     </div>
 </template>

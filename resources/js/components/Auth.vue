@@ -9,7 +9,7 @@ const email = ref("");
 const password = ref("");
 const router = useRouter();
 const authOpen = ref(true);
-const isAuthenticated = ref(false);
+
 const { closeAuth } = inject("AuthActions");
 
 const login = async () => {
@@ -29,14 +29,13 @@ const login = async () => {
             localStorage.setItem("userId", response.data.id);
         } else {
         }
-
-        isAuthenticated.value = true;
         authOpen.value = false;
+        const userRole = localStorage.getItem("role");
 
         if (roles.includes("admin")) {
             router.push("/admin");
         } else if (roles.includes("librarian")) {
-            router.push("/books/create");
+            router.push("/librarian");
         } else {
             router.push("/");
         }
@@ -88,12 +87,12 @@ const login = async () => {
                 >
                     Войти
                 </button>
-                <button
-                    type="button"
-                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                <router-link
+                    @click="closeAuth()"
+                    to="/forgot-password"
+                    class="bg-blue-600 text-white mr-8 px-4 py-2 rounded hover:bg-blue-700"
+                    >Восстановление пароля</router-link
                 >
-                    Восстановление пароля
-                </button>
             </form>
         </div>
     </div>

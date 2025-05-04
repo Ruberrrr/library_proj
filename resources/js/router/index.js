@@ -1,8 +1,9 @@
 import { createRouter, createWebHistory } from "vue-router";
-import BookForm from "../components/BookForm.vue";
 import BookPage from "../components/BookPage.vue";
 import AdminPanel from "../components/Admin.vue";
-import BookDelete from "../components/BookDelete.vue";
+import LibrarianPage from "@/components/librarianPage.vue";
+import ForgotPassword from "@/components/ForgotPassword.vue";
+
 const routes = [
     {
         path: "/",
@@ -10,15 +11,9 @@ const routes = [
         component: BookPage,
     },
     {
-        path: "/books/create",
-        name: "BookCreate",
-        component: BookForm,
-        meta: { requiresAuth: true, requiresRole: ("librarian", "admin") },
-    },
-    {
-        path: "/books/delete",
-        name: "BookDelete",
-        component: BookDelete,
+        path: "/librarian",
+        name: "LibrarianPage",
+        component: LibrarianPage,
         meta: { requiresAuth: true, requiresRole: "librarian" },
     },
     {
@@ -26,6 +21,11 @@ const routes = [
         name: "AdminPanel",
         component: AdminPanel,
         meta: { requiresAuth: true, requiresRole: "admin" },
+    },
+    {
+        path: "/forgot-password",
+        name: "ForgotPassword",
+        component: ForgotPassword,
     },
 ];
 

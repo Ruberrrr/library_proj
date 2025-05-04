@@ -38,7 +38,16 @@ class BookController extends Controller
         return response()->json($book, 201);
         
     }
-    
+    public function toggleGive($id)
+    {
+    $book = Book::findOrFail($id);
+    $book->give = !$book->give;
+    $book->save();
+
+    return response()->json([
+        'give' => $book->give,
+    ]);
+    }
     public function destroy($id)
     {
         $book = Book::findOrFail($id);

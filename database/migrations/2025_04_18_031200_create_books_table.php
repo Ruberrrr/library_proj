@@ -18,6 +18,7 @@ return new class extends Migration
             $table->timestamps();
             $table->boolean('is_reserved')->default(false);
             $table->foreignId('reserved_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->boolean('give')->default(false);
         });
     }
 

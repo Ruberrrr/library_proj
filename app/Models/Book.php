@@ -12,8 +12,8 @@ class Book extends Model
     use HasFactory;
 
     protected $table = 'books';
-    protected $fillable = ['title', 'author', 'reserved_by'];
-    protected $visible = ['id', 'title', 'author', 'is_reserved', 'reserved_by'];
+    protected $fillable = ['title', 'author', 'reserved_by', 'give'];
+    protected $visible = ['id', 'title', 'author', 'is_reserved', 'reserved_by', 'give'];
     public function reservations()
     {
     return $this->hasMany(Reservation::class);
