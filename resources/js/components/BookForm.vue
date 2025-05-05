@@ -1,6 +1,6 @@
 <script setup>
 import { ref, defineEmits, defineProps } from "vue";
-import axios from "axios";
+import axios from "../axios";
 import { useRouter } from "vue-router";
 
 const form = ref({
@@ -17,20 +17,24 @@ const error = ref("");
 const router = useRouter();
 
 const submitBook = async () => {
-    if (!form.title || !form.author) {
+    if (!form.value.title || !form.value.author) {
         error.value = "Заполните все поля!";
         message.value = "";
         return;
     }
     try {
-        const response = await axios.post("/book", form);
+        const response = await axios.post("/books/create", {
+            title: form.value.title,
+            author: form.value.author,
+        });
+
         message.value = `Книга добавлена: ${response.data.title}`;
         error.value = "";
 
-        form.title = "";
-        form.author = "";
+        form.value.title = "";
+        form.value.author = "";
+
         emit("refresh");
-        emit("close");
     } catch (err) {
         error.value =
             err.response?.data?.message || "Ошибка при добавлении книги";
@@ -58,7 +62,6 @@ function goToBooks() {
                         required
                     />
                 </div>
-
                 <div class="mb-4">
                     <label class="block text-sm font-medium">Автор:</label>
                     <input
@@ -82,7 +85,6 @@ function goToBooks() {
                     Назад
                 </button>
             </form>
-
             <div v-if="message" class="mt-4 text-green-600">{{ message }}</div>
             <div v-if="error" class="mt-4 text-red-600">{{ error }}</div>
         </div>

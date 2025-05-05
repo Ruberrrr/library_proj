@@ -5,13 +5,18 @@ use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
 
 Route::get('/book', [BookController::class, 'index'])->name('book.all');
 Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 Route::middleware('auth:sanctum')->post('/book/{bookId}/reserve', [ReservationController::class, 'reserveBook']);
+Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
+    ->name('password.request');
 
-require __DIR__ . '/auth.php';
+Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
+    ->name('password.email');
+
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::put('users/{id}/password', [UserController::class, 'update'])->name('password.update');
     Route::post('/users', [UserController::class, 'store'])->name('user.add');
