@@ -50,7 +50,7 @@ const updateSearch = (event) => {
             >
                 <option disabled selected>Сортировать по</option>
                 <option value="author">По автору</option>
-                <option value="alpabet">По алфавиту</option>
+                <option value="alphabet">По алфавиту</option>
             </select>
         </div>
         <div class="flex justify-between relative">

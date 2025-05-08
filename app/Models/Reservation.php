@@ -12,11 +12,21 @@ class Reservation extends Model
     protected $fillable = [
         'user_id',
         'book_id',
+        'librarian_id',
     ];
+    
     public function user()
     {
         return $this->belongsTo(User::class);
     }
+
+    
+    public function librarian()
+    {
+        return $this->belongsTo(User::class, 'librarian_id');
+    }
+    
+
     public function book()
     {
         return $this->belongsTo(Book::class);

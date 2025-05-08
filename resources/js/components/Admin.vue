@@ -41,6 +41,7 @@ onMounted(() => {
     getUsers();
 });
 </script>
+
 <template>
     <AdminForm
         :show="modalOpen"

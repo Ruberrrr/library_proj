@@ -12,11 +12,10 @@ class PasswordController extends Controller
     {
         $validatedData = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'password' => 'required|string|min:6',
+            'password' => 'required|string|min:8',
         ]);
-        $validatedData['password'] = Hash::make($validatedData['password']);
-        $user = User::findOrFail($validated['user_id']);
-        $user = User::update($validatedData);
+        $user = User::findOrFail($validatedData['user_id']);
+        $user->password = Hash::make($validatedData['password']);
         $user->save();
 
         return response()->json($user, 201);
